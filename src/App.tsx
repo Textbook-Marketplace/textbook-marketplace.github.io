@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import './App.css'
 
@@ -21,20 +21,18 @@ const supabaseUrl = 'https://xznjhzoxaaxeldtfyebs.supabase.co'
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bmpoem94YWF4ZWxkdGZ5ZWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjUzOTA2MTQsImV4cCI6MjA0MDk2NjYxNH0.BvehGz2cFCFI7gk9uDfMlkVV5ftc-eu62Yb94yh1qb0'
 const supabaseClient = createClient(supabaseUrl, supabaseKey)
 
-async function fetchListings() {
-  const listingsRes = await supabaseClient
-  .from("listings")
-  .select()
-  console.log(listingsRes['data'])
-  return listingsRes['data']
-}
-let listingsData = await fetchListings()
-
 function Listings() {
-  let [ listings, setListings ] = useState<any[]>(listingsData ? listingsData : [])
-  if (listings.length === 0) {
-    setListings(() => listingsData ? listingsData : [])
+  let [ listings, setListings ] = useState<any[]>([])
+  async function fetchListings() {
+    const listingsRes = await supabaseClient
+    .from("listings")
+    .select()
+    console.log(listingsRes['data'])
+    setListings(listingsRes['data']!)
   }
+  useEffect(() => {
+    fetchListings();
+  }, []);
   return(
     <div id="listings">
       {listings.map((listing) => (
