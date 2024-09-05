@@ -35,6 +35,9 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
 
+    SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+    PROJECT_ID: xznjhzoxaaxeldtfyebs
+
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v3
@@ -42,6 +45,12 @@ jobs:
           name: production-files
           path: ./dist
 
+      - uses: actions/checkout@v3
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+    
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
