@@ -1,18 +1,60 @@
 import { useEffect, useState } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { createClient, Session } from '@supabase/supabase-js'
+import { Auth } from '@supabase/auth-ui-react'
+import { ThemeSupa } from '@supabase/auth-ui-shared'
 import './App.css'
 
+let loginAttempt: boolean = false
+
+
 function App() {
+const [update, forceUpdate] = useState<boolean>(false)
+// Auth session
+const [session, setSession] = useState<Session | null>(null)
+
+useEffect(() => {
+  supabaseClient.auth.getSession().then(({ data: { session } }) => {
+    setSession(session)
+  })
+
+  const {
+    data: { subscription },
+  } = supabaseClient.auth.onAuthStateChange((_event, session) => {
+    setSession(session!)
+  })
+
+  return () => subscription.unsubscribe()
+}, [])
+function triggerAuth(open: boolean) {
+  console.log(session)
+  console.log('trigger auth')
+  loginAttempt = open
+  forceUpdate(!update)
+}
+function logOut() {
+  console.log("log out")
+  supabaseClient.auth.signOut()
+}
+
+console.log(session)
+if (loginAttempt && session == null) {
   return (
-    <>
-      <h1>Books Books be like Books when</h1>
-      <input id="email" type="text" placeholder="Email"/>
-      <input id="password" type="text" placeholder="Password"/>
-      <button id="signup">Sign up</button>
-      <button>Log in</button>
-      <Listings/>
-    </>
-  )
+  <>
+    <button onClick={() =>{triggerAuth(false)}}>Back</button>
+    <Auth supabaseClient={supabaseClient} appearance={{ theme: ThemeSupa }} />
+  </>
+  )}
+if(session != null) loginAttempt = false
+return (
+  <>
+    <h1>Books Books be like Books when</h1>
+    {session == null 
+    ? <button onClick={() =>{triggerAuth(true)}}>Sign up / Log in</button>
+    : <button onClick={() =>{logOut()}}>Log out</button>
+  }
+    <Listings/>
+  </>
+)
 }
 
 export default App
@@ -45,21 +87,3 @@ function Listings() {
     </div>
   )
 }
-/*
-const emailInput = document.querySelector('#email')
-const pwdInput = document.querySelector('#password')
-async function signUp() {
-    const { data, error } = await supabase.auth.signUp({
-        email: emailInput.value,
-        password: pwdInput.value,
-    })
-}
-async function signIn() {
-    const { data, error } = await supabase.auth.signInWithPassword({
-        email: emailInput.value,
-        password: pwdInput.value,
-    })
-}
-
-const signUpBtn = document.querySelector('#signup')
-signUpBtn.onclick = signUp*/
